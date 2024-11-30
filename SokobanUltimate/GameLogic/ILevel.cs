@@ -7,4 +7,10 @@ public interface ILevel
     public bool IsWin();
 
     public bool IsLoss();
+
+    public IEntity[,] GetCurrentState();
+
+    public int GetLevelHeight();
+
+    public int GetLevelWidth();
 }

@@ -8,28 +8,53 @@ namespace SokobanUltimate.GameLogic;
 
 public class Level : ILevel
 {
-    public readonly char[,] CharsInitialState;
-    public readonly int LevelHeight;
-    public readonly int LevelWidth;
+    private readonly string[] _charsInitialState;
+    private readonly int _levelHeight;
+    private readonly int _levelWidth;
+    public static Action IdleAction = new(CommandType.IDLE);
+
+    private static readonly List<IntVector2> Directions =
+    [
+        new(1, 0), new(-1, 0),
+        new(0, 1), new(0, -1)
+    ];
     
     private Player _player;
+    
     private IEntity[,] _currentState;
     private List<IEntity> _aliveEntities;
     private List<IEntity> _deadEntities;
     private List<BoxCollector> _collectors;
 
-    public Level(char[,] charMap)
+    public Level(string charMap)
     {
-        CharsInitialState = charMap;
-        LevelHeight = charMap.GetLength(0);
-        LevelWidth = charMap.GetLength(1);
-        _currentState = new IEntity[LevelHeight, LevelWidth];
+        _charsInitialState = charMap.Split("\r\n");
+        _levelHeight = _charsInitialState.Length;
+        _levelWidth = _charsInitialState[0].Length;
+        _currentState = new IEntity[_levelHeight, _levelWidth];
         SetUpEntitiesOnLevel();
     }
     
     public void Update()
     {
-        throw new System.NotImplementedException();
+        ProcessAction(_player.Act());
+        foreach (var entityAction in GameState.ActionList)
+        {
+            PerformAction(entityAction);        
+        }
+
+        foreach (var entityAction in GameState.ActionList)
+        {
+            if (entityAction.Key is Box box) UpdateBoxNeighbors(box);
+        }
+        
+        GameState.ActionList.Clear();
+        
+        /*
+         *
+         *
+         *
+         * */
     }
 
     public bool IsWin()
@@ -39,16 +64,27 @@ public class Level : ILevel
 
     public bool IsLoss()
     {
-        return _deadEntities.Any(entity => entity is Player or Box);
+        return _aliveEntities.Any(entity => entity.isDead());
     }
+
+    public bool OutOfBounds(IntVector2 coordinates)
+        => 0 > coordinates.X || coordinates.X >= _levelWidth || 0 > coordinates.Y || coordinates.Y >= _levelHeight;
+
+    public IEntity[,] GetCurrentState() => _currentState;
+    public int GetLevelHeight() => _levelHeight;
+    public int GetLevelWidth() => _levelWidth;
 
     private void SetUpEntitiesOnLevel()
     {
-        for (var i = 0; i < LevelHeight; i++)
+        _aliveEntities = [];
+        _deadEntities = [];
+        _collectors = [];
+        
+        for (var i = 0; i < _levelHeight; i++)
         {
-            for (var j = 0; j < LevelWidth; j++)
+            for (var j = 0; j < _levelWidth; j++)
             {
-                var entity = GetEntityBySymbol(new Vector2(j, i), CharsInitialState[i, j]);
+                var entity = GetEntityBySymbol(new IntVector2(j, i), _charsInitialState[i][j]);
                 _currentState[i, j] = entity;
                 
                 if (entity is Player) _player = (Player)entity;
@@ -56,18 +92,54 @@ public class Level : ILevel
                 if (entity is BoxCollector) _collectors.Add((BoxCollector)entity);
             }
         }
+
+        foreach (var box in _aliveEntities.OfType<Box>())
+        {
+            UpdateBoxNeighbors(box);
+        }
     }
 
-    private IEntity GetEntityBySymbol(Vector2 vector2, char symbol)
+    private void UpdateBoxNeighbors(Box box)
+    {
+        var directionNeighbors = new Dictionary<IntVector2, IEntity>();
+        foreach (var direction in Directions)
+        {
+            var newPosition = box.Coordinates + direction;
+            directionNeighbors[direction] =
+                OutOfBounds(newPosition) ? null : _currentState[newPosition.Y, newPosition.X];
+        }
+
+        box.Neighbors = directionNeighbors;
+    }
+
+    private static IEntity GetEntityBySymbol(IntVector2 coordinates, char symbol)
     {
         return symbol switch
         {
-            'P' => new Player(),
-            'W' => new Wall(),
-            'B' => new Box(),
-            'C' => new BoxCollector(),
-            ' ' => new Space(),
+            'P' => new Player(coordinates),
+            'W' => new Wall(coordinates),
+            'B' => new Box(coordinates),
+            'C' => new BoxCollector(coordinates),
+            ' ' => new Space(coordinates),
             _ => throw new ArgumentException("Unexpected map symbol")
         };
+    }
+
+    private void ProcessAction(Action action)
+    {
+        var nextPosition = _player.Coordinates + action.DeltaVector;
+        if (action.CommandType is CommandType.IDLE || OutOfBounds(nextPosition)) return;
+        var nextPositionEntity = _currentState[nextPosition.Y, nextPosition.X];
+        _player.Act(nextPositionEntity, action);
+    }
+
+    private void PerformAction(KeyValuePair<IEntity, Action> entityAction)
+    {
+        if (entityAction.Value.CommandType is not CommandType.MOVE) return;
+        var oldPosition = entityAction.Key.Coordinates;
+        var newPosition = oldPosition + entityAction.Value.DeltaVector;
+        entityAction.Key.Coordinates = newPosition;
+        _currentState[oldPosition.Y, oldPosition.X] = new Space(oldPosition);
+        _currentState[newPosition.Y, newPosition.X] = entityAction.Key;
     }
 }

@@ -4,8 +4,11 @@ namespace SokobanUltimate.GameLogic;
 
 public interface IEntity
 {
-    public Vector2 Coordinates { get; set; }
-    public Action Act();
+    public IntVector2 Coordinates { get; set; }
+    
+    public Action ActedBy(IEntity entity, Action action);
 
     public Properties GetProperties();
+
+    public bool isDead();
 }

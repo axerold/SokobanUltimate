@@ -20,9 +20,9 @@ public class Properties
         IsInteractive = defaultValues[2];
     }
 
-    private bool[] DefaultValuesForPlayerAndBox() => [true, false, true];
-    private bool[] DefaultValuesForWallOrSpace() => [false, false, false];
-    private bool[] DefaultValuesForCollector() => [false, false, true];
+    private static bool[] DefaultValuesForPlayerAndBox() => [true, false, true];
+    private static bool[] DefaultValuesForWallOrSpace() => [false, false, false];
+    private static bool[] DefaultValuesForCollector() => [false, false, true];
 
 
 }

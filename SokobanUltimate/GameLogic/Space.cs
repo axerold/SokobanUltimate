@@ -2,10 +2,15 @@
 
 namespace SokobanUltimate.GameLogic;
 
-public class Space : IEntity
+public class Space(IntVector2 coordinates) : IEntity
 {
-    public Vector2 Coordinates { get; set; }
-    public Action Act() => new Action(CommandType.IDLE);
+    public IntVector2 Coordinates
+    {
+        get => coordinates;
+        set => coordinates = value;
+    }
+    public Action ActedBy(IEntity entity, Action action) => action;
 
     public Properties GetProperties() => new(this);
+    public bool isDead() => false;
 }

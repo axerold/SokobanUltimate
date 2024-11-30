@@ -2,17 +2,17 @@
 
 namespace SokobanUltimate.GameLogic;
 
-public class Wall : IEntity
+public class Wall(IntVector2 coordinates) : IEntity
 {
-    public Vector2 Coordinates { get; set; }
-
-    public Action Act()
+    public IntVector2 Coordinates
     {
-        throw new System.NotImplementedException();
+        get => coordinates;
+        set => coordinates = value;
     }
 
-    public Properties GetProperties()
-    {
-        throw new System.NotImplementedException();
-    }
+    public Action ActedBy(IEntity entity, Action action) => Level.IdleAction;
+
+    public Properties GetProperties() => new(this);
+
+    public bool isDead() => false;
 }

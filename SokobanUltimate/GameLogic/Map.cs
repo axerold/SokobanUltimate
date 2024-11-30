@@ -18,4 +18,19 @@ public class Map : ILevel
     {
         throw new System.NotImplementedException();
     }
+
+    public IEntity[,] GetCurrentState()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public int GetLevelHeight()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public int GetLevelWidth()
+    {
+        throw new System.NotImplementedException();
+    }
 }

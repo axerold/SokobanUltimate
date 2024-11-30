@@ -1,18 +1,43 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace SokobanUltimate.GameLogic;
 
-public class Player : IEntity
+public class Player(IntVector2 coordinates) : IEntity, IActive
 {
-    public Vector2 Coordinates { get; set; }
-
-    public Action Act()
+    public IntVector2 Coordinates
     {
-        throw new System.NotImplementedException();
+        get => coordinates;
+        set => coordinates = value;
     }
 
-    public Properties GetProperties()
+    public static readonly Dictionary<Keys, IntVector2> KeysToDirections = new()
     {
-        throw new System.NotImplementedException();
+        { Keys.W, new IntVector2(0, -1) }, { Keys.S, new IntVector2(0, 1) },
+        { Keys.A, new IntVector2(-1, 0) }, { Keys.D, new IntVector2(1, 0) }
+    };
+
+    public Action ActedBy(IEntity entity, Action action) => Level.IdleAction;
+    
+    public Properties GetProperties() => new(this);
+
+    public bool isDead() => false;
+    
+    public Action Act()
+    {
+        var keyboardState = Keyboard.GetState();
+        foreach (var keyToDirection in KeysToDirections)
+            if (keyboardState.IsKeyDown(keyToDirection.Key))
+                return new Action(CommandType.MOVE, keyToDirection.Value);
+        return Level.IdleAction;
+    }
+
+    public Action Act(IEntity entity, Action action)
+    {
+        var finalAction = entity.ActedBy(this, action);
+        GameState.ActionList.Add(new(this, finalAction));
+        return finalAction;
     }
 }
