@@ -7,7 +7,7 @@ namespace SokobanUltimate.GameLogic;
 
 public class Player(IntVector2 coordinates) : IEntity, IActive
 {
-    public IntVector2 Coordinates
+    public IntVector2 Location
     {
         get => coordinates;
         set => coordinates = value;
@@ -19,8 +19,11 @@ public class Player(IntVector2 coordinates) : IEntity, IActive
         { Keys.A, new IntVector2(-1, 0) }, { Keys.D, new IntVector2(1, 0) }
     };
 
-    public Action ActedBy(IEntity entity, Action action) => Level.IdleAction;
-    
+    public Action OnAction(Action action)
+    {
+        return new Action();
+    }
+
     public Properties GetProperties() => new(this);
 
     public bool isDead() => false;
@@ -30,14 +33,11 @@ public class Player(IntVector2 coordinates) : IEntity, IActive
         var keyboardState = Keyboard.GetState();
         foreach (var keyToDirection in KeysToDirections)
             if (keyboardState.IsKeyDown(keyToDirection.Key))
-                return new Action(CommandType.MOVE, keyToDirection.Value);
-        return Level.IdleAction;
-    }
+            {
+                var newLocation = coordinates + keyToDirection.Value;
+                return new Action(CommandType.MOVE, this, newLocation);
+            }
 
-    public Action Act(IEntity entity, Action action)
-    {
-        var finalAction = entity.ActedBy(this, action);
-        GameState.ActionList.Add(new(this, finalAction));
-        return finalAction;
+        return new Action(CommandType.IDLE, this, Location);
     }
 }

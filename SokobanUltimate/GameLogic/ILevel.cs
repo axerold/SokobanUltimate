@@ -2,15 +2,14 @@
 
 public interface ILevel
 {
+    public Cell[,] Cells { get; }
     public void Update();
 
     public bool IsWin();
 
     public bool IsLoss();
 
-    public IEntity[,] GetCurrentState();
+    public int LevelHeight { get; }
 
-    public int GetLevelHeight();
-
-    public int GetLevelWidth();
+    public int LevelWidth { get; }
 }

@@ -60,40 +60,46 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.Black);
         
         _spriteBatch.Begin();
-        foreach (var texturePosition in GetTexturesPositions())
-        {
-            if (texturePosition.Value is not null)
-                _spriteBatch.Draw(texturePosition.Value, texturePosition.Key, Color.White);
-        }
+        LayersDrawing(_spriteBatch);
         _spriteBatch.End();
         
 
         base.Draw(gameTime);
     }
 
-    private KeyValuePair<Vector2, Texture2D>[,] GetTexturesPositions()
+    private void LayersDrawing(SpriteBatch batch)
     {
-        var currentLevel = _gameState.GetCurrentLevel();
-        var levelHeight = currentLevel.GetLevelHeight();
-        var levelWidth = currentLevel.GetLevelWidth();
-        
-        var currentState = currentLevel.GetCurrentState();
-        var texturesToPositions = new KeyValuePair<Vector2, Texture2D>[levelHeight, levelWidth];
-        for (var i = 0; i < currentLevel.GetLevelHeight(); i++)
+        var cells = GameState.GetCurrentLevel().Cells;
+        foreach (var cell in cells)
         {
-            for (var j = 0; j < currentLevel.GetLevelWidth(); j++)
+            var texture = GetTextureByEntity(cell.Landlord);
+            var position = GetTexturePosition(cell.Landlord);
+            if (texture is not null)
+                batch.Draw(texture, position, Color.White);
+            foreach (var tenant in cell.Tenants)
             {
-                Texture2D texture2D = null;
-                if (currentState[i, j] is Player) texture2D = _playerTexture;
-                if (currentState[i, j] is Box) texture2D = _boxTexture;
-                if (currentState[i, j] is BoxCollector) texture2D = _collectorTexture;
-                if (currentState[i, j] is Wall) texture2D = _wallTexture;
-                texturesToPositions[i, j] = 
-                    new KeyValuePair<Vector2, Texture2D>(new Vector2(j * CellSize, i * CellSize), texture2D);
-
+                texture = GetTextureByEntity(tenant);
+                position = GetTexturePosition(tenant);
+                if (texture is not null)
+                    batch.Draw(texture, position, Color.White);
             }
         }
+    }
 
-        return texturesToPositions;
+    private Texture2D GetTextureByEntity(IEntity entity)
+    {
+        return entity switch
+        {
+            Player => _playerTexture,
+            Box => _boxTexture,
+            BoxCollector => _collectorTexture,
+            Wall => _wallTexture,
+            _ => null
+        };
+    }
+
+    private Vector2 GetTexturePosition(IEntity entity)
+    {
+        return new Vector2(entity.Location.X * CellSize, entity.Location.Y * CellSize);
     }
 }

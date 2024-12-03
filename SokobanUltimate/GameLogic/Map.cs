@@ -4,6 +4,8 @@ namespace SokobanUltimate.GameLogic;
 
 public class Map : ILevel
 {
+    public Cell[,] Cells { get; }
+
     public void Update()
     {
         throw new System.NotImplementedException();
@@ -19,18 +21,6 @@ public class Map : ILevel
         throw new System.NotImplementedException();
     }
 
-    public IEntity[,] GetCurrentState()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public int GetLevelHeight()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public int GetLevelWidth()
-    {
-        throw new System.NotImplementedException();
-    }
+    public int LevelHeight { get; }
+    public int LevelWidth { get; }
 }

@@ -4,9 +4,9 @@ namespace SokobanUltimate.GameLogic;
 
 public class Collectible : IEntity
 {
-    public IntVector2 Coordinates { get; set; }
+    public IntVector2 Location { get; set; }
 
-    public Action ActedBy(IEntity entity, Action action)
+    public Action OnAction(Action action)
     {
         throw new System.NotImplementedException();
     }

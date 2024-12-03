@@ -2,14 +2,19 @@
 
 namespace SokobanUltimate.GameLogic;
 
-public class Space(IntVector2 coordinates) : IEntity
+public class Space : IEntity
 {
-    public IntVector2 Coordinates
+    public IntVector2 Location { get; set; }
+
+    public Space(IntVector2 location)
     {
-        get => coordinates;
-        set => coordinates = value;
+        Location = location;
     }
-    public Action ActedBy(IEntity entity, Action action) => action;
+
+    public Action OnAction(Action action)
+    {
+        throw new System.NotImplementedException();
+    }
 
     public Properties GetProperties() => new(this);
     public bool isDead() => false;

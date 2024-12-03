@@ -1,0 +1,40 @@
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+
+namespace SokobanUltimate.GameLogic;
+
+public class Cell
+{
+    public IEntity Landlord { get; }
+    public List<IEntity> Tenants { get; }
+
+    public Cell(IEntity entity, IntVector2 location)
+    {
+        if (IsLandlord(entity))
+        {
+            Landlord = entity;
+            Tenants = [];
+        }
+        else
+        {
+            Landlord = new Space(location);
+            Tenants = [entity];
+        }
+    }
+
+    public void AddTenant(IEntity tenant)
+    {
+        if (Landlord is Wall)
+            throw new ConstraintException("No tenants may live upon the wall");
+        Tenants.Add(tenant);
+    }
+
+    public void RemoveTenant(IEntity tenant)
+    {
+        Tenants.Remove(tenant);
+    }
+
+    public IEntity GetLastTenant() => Tenants.LastOrDefault();
+    public static bool IsLandlord(IEntity entity) => entity is Wall or Space or BoxCollector;
+}

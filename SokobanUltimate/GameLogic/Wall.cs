@@ -2,15 +2,18 @@
 
 namespace SokobanUltimate.GameLogic;
 
-public class Wall(IntVector2 coordinates) : IEntity
+public class Wall : IEntity
 {
-    public IntVector2 Coordinates
+    public Wall(IntVector2 location)
     {
-        get => coordinates;
-        set => coordinates = value;
+        Location = location;
     }
+    public IntVector2 Location { get; set; }
 
-    public Action ActedBy(IEntity entity, Action action) => Level.IdleAction;
+    public Action OnAction(Action action)
+    {
+        throw new System.NotImplementedException();
+    }
 
     public Properties GetProperties() => new(this);
 

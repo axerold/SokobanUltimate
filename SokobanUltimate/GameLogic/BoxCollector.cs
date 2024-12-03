@@ -1,21 +1,29 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Linq;
+using Microsoft.Xna.Framework;
 
 namespace SokobanUltimate.GameLogic;
 
 public class BoxCollector(IntVector2 coordinates) : IEntity
 {
-    public IntVector2 Coordinates
+    public IntVector2 Location
     {
         get => coordinates;
         set => coordinates = value;
     }
-    public bool BoxReceived { get; set; }
 
-
-    public Action ActedBy(IEntity entity, Action action)
+    private bool _boxReceived;
+    public bool BoxReceived
     {
-        return Level.IdleAction;
+        set
+        {
+            if (value && GameState.GetCurrentLevel().Cells[Location.Y, Location.X].Tenants.Last() is Box)
+                _boxReceived = true;
+        }
+
+        get => _boxReceived;
     }
+
+    public Action OnAction(Action action) => new();
 
     public Properties GetProperties() => new(this);
 

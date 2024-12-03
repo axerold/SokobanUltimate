@@ -4,9 +4,9 @@ namespace SokobanUltimate.GameLogic;
 
 public interface IEntity
 {
-    public IntVector2 Coordinates { get; set; }
-    
-    public Action ActedBy(IEntity entity, Action action);
+    public IntVector2 Location { get; set; }
+
+    public Action OnAction(Action action);
 
     public Properties GetProperties();
 

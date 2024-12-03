@@ -1,53 +1,58 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Reflection;
-using Microsoft.Xna.Framework;
 
 namespace SokobanUltimate.GameLogic;
 
-public class Box(IntVector2 coordinates) : IEntity
+public class Box : IEntity
 {
-    public IntVector2 Coordinates
-    {
-        get => coordinates;
-        set => coordinates = value;
-    }
-
-    private Dictionary<IntVector2, IEntity> neighbors;
-
-    public Dictionary<IntVector2, IEntity> Neighbors
-    {
+    private IntVector2 _location;
+    public IntVector2 Location 
+    { 
+        get => _location;
         set
         {
-            foreach (var directionNeighbor in value)
-            {
-                if (directionNeighbor.Value is not null
-                    && directionNeighbor.Value.Coordinates != coordinates + directionNeighbor.Key)
-                    throw new ValidationException("Incorrect neighborhood");
-            }
-            neighbors = value;
+            _location = value;
+            UpdateNeighbors();
         }
     }
-    
-    public Action ActedBy(IEntity entity, Action action)
+
+    private Dictionary<IntVector2, Cell> _neighborCells;
+
+    public Box(IntVector2 location)
     {
-        var actualAction = Level.IdleAction;
-        if (entity is Player)
-        {
-            var neighbor = neighbors[action.DeltaVector];
-            actualAction = neighbor is null ? Level.IdleAction : neighbor.ActedBy(this, action);
-        }
-        GameState.ActionList.Add(new(this, actualAction));
-        return actualAction;
+        _location = location;
+    }
+    
+    
+    public Action OnAction(Action action)
+    {
+        if (_neighborCells is null) 
+            UpdateNeighbors();
+        var idleAction = new Action(CommandType.IDLE, this, Location);
+        if (action.CommandType is not CommandType.MOVE || action.Initiator is not Player) 
+            return idleAction;
+        
+        var direction = Location - action.Initiator.Location;
+        var targetCell = _neighborCells![direction];
+        if (targetCell.GetLastTenant() is Box || targetCell.Landlord is Wall) 
+            return idleAction;
+        
+        return new Action(CommandType.MOVE, this, Location + direction);
     }
 
     public Properties GetProperties() => new(this);
 
     public bool isDead()
     {
-        var deadEndCount = neighbors.Count(
-            directionNeighbor => directionNeighbor.Value is null or Wall or Box);
-        return deadEndCount >= 2;
+        return false;
+    }
+
+    private void UpdateNeighbors()
+    {
+        _neighborCells ??= new Dictionary<IntVector2, Cell>();
+        foreach (var direction in Level.Directions)
+        {
+            var newLocation = Location + direction;
+            _neighborCells[direction] = GameState.GetCurrentLevel().Cells[newLocation.Y, newLocation.X];
+        }
     }
 }

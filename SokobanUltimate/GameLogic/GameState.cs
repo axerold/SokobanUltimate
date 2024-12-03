@@ -5,17 +5,14 @@ namespace SokobanUltimate.GameLogic;
 
 public class GameState
 {
-    private static ILevel currentLevel;
+    private static ILevel _currentLevel;
 
-    public static List<KeyValuePair<IEntity, Action>> ActionList = new();
-
-    public float cooldownTimer = 0.0f;
-    public float moveCoolDown = 0.15f;
+    public float cooldownTimer;
+    public float moveCoolDown = 0.12f;
 
     public void LoadLevel(string charLevelMap)
     {
-        currentLevel = new Level(charLevelMap);
-        ActionList.Clear();
+        _currentLevel = new Level(charLevelMap);
     }
 
     public void UpdateLevel(GameTime gameTime)
@@ -24,8 +21,8 @@ public class GameState
         cooldownTimer -= deltaTime;
         if (!(cooldownTimer <= 0.0f)) return;
         cooldownTimer = moveCoolDown;
-        currentLevel.Update();
+        _currentLevel.Update();
     }
 
-    public ILevel GetCurrentLevel() => currentLevel;
+    public static ILevel GetCurrentLevel() => _currentLevel;
 }

@@ -2,16 +2,9 @@
 
 namespace SokobanUltimate.GameLogic;
 
-public class Action
+public class Action(CommandType commandType = CommandType.IDLE, IEntity initiator = null, IntVector2 location = new())
 {
-    public readonly CommandType CommandType;
-    public readonly IntVector2 DeltaVector;
-    public readonly IEntity InteractedEntity;
-
-    public Action(CommandType commandType, IntVector2 vector2 = new(), IEntity entity = null)
-    {
-        CommandType = commandType;
-        DeltaVector = vector2;
-        InteractedEntity = entity;
-    }
+    public readonly CommandType CommandType = commandType;
+    public readonly IEntity Initiator = initiator;
+    public readonly IntVector2 TargetLocation = location;
 }
