@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SokobanUltimate.GameLogic;
+namespace SokobanUltimate.GameLogic.Interfaces;
 
 public interface IMenu
 {

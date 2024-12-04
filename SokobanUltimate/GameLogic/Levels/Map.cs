@@ -1,10 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using SokobanUltimate.GameLogic.Interfaces;
 
-namespace SokobanUltimate.GameLogic;
+namespace SokobanUltimate.GameLogic.Levels;
 
 public class Map : ILevel
 {
+    public string[] CharsInitialState { get; }
     public Cell[,] Cells { get; }
+    public int StepCounter { get; }
 
     public void Update()
     {

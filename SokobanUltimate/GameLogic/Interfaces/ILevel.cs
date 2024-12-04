@@ -1,8 +1,12 @@
-﻿namespace SokobanUltimate.GameLogic;
+﻿using SokobanUltimate.GameLogic.Levels;
+
+namespace SokobanUltimate.GameLogic.Interfaces;
 
 public interface ILevel
 {
     public Cell[,] Cells { get; }
+
+    public int StepCounter { get; }
     public void Update();
 
     public bool IsWin();

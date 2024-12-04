@@ -1,4 +1,7 @@
-﻿namespace SokobanUltimate.GameLogic;
+﻿using SokobanUltimate.GameLogic.Entities;
+using SokobanUltimate.GameLogic.Interfaces;
+
+namespace SokobanUltimate.GameLogic;
 
 public class Properties
 {

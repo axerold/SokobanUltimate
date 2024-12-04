@@ -1,6 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using SokobanUltimate.GameLogic.Actions;
 
-namespace SokobanUltimate.GameLogic;
+namespace SokobanUltimate.GameLogic.Interfaces;
 
 public interface IEntity
 {

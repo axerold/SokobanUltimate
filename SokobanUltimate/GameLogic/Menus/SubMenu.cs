@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using SokobanUltimate.GameLogic.Interfaces;
 
-namespace SokobanUltimate.GameLogic;
+namespace SokobanUltimate.GameLogic.Menus;
 
-public class MainMenu : IMenu
+public class SubMenu : IMenu
 {
     public List<IMenu> ChildMenus { get; set; }
 

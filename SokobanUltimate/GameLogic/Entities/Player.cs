@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using SokobanUltimate.GameLogic.Actions;
+using SokobanUltimate.GameLogic.Interfaces;
 
-namespace SokobanUltimate.GameLogic;
+namespace SokobanUltimate.GameLogic.Entities;
 
 public class Player(IntVector2 coordinates) : IEntity, IActive
 {

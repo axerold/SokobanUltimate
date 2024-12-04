@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using SokobanUltimate.GameLogic.Interfaces;
 
-namespace SokobanUltimate.GameLogic;
+namespace SokobanUltimate.GameLogic.Menus;
 
 public class PauseMenu : IMenu
 {
