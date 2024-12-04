@@ -15,7 +15,7 @@ public class Box : IEntity
         }
     }
 
-    private Dictionary<IntVector2, Cell> _neighborCells;
+    private Dictionary<IntVector2, Cell> _neighborCells = new();
 
     public Box(IntVector2 location)
     {
@@ -25,8 +25,7 @@ public class Box : IEntity
     
     public Action OnAction(Action action)
     {
-        if (_neighborCells is null) 
-            UpdateNeighbors();
+        UpdateNeighbors();
         var idleAction = new Action(CommandType.IDLE, this, Location);
         if (action.CommandType is not CommandType.MOVE || action.Initiator is not Player) 
             return idleAction;
@@ -43,16 +42,26 @@ public class Box : IEntity
 
     public bool isDead()
     {
+        //TODO
         return false;
     }
 
     private void UpdateNeighbors()
     {
-        _neighborCells ??= new Dictionary<IntVector2, Cell>();
         foreach (var direction in Level.Directions)
         {
             var newLocation = Location + direction;
             _neighborCells[direction] = GameState.GetCurrentLevel().Cells[newLocation.Y, newLocation.X];
         }
+    }
+
+    private bool IsBlocked(Cell cell)
+    {
+        if (cell.Landlord is Wall || cell.DeadZone) return true;
+        if (cell.Tenants is null || cell.GetLastTenant() is not Box) return false;
+        //TODO
+        return false;
+
+
     }
 }

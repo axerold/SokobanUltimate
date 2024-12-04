@@ -13,4 +13,8 @@ WWWWWW WWB B W
   W    W     W
   WWWWWWWWWWWW";
 
+    public static string Corridor = @"WWWWWWWWWWW
+WC      BPW
+WWWWWWWWWWW";
+
 }

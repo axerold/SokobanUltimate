@@ -8,6 +8,7 @@ public class Cell
 {
     public IEntity Landlord { get; }
     public List<IEntity> Tenants { get; }
+    public bool DeadZone { get; set; }
 
     public Cell(IEntity entity, IntVector2 location)
     {
@@ -21,6 +22,8 @@ public class Cell
             Landlord = new Space(location);
             Tenants = [entity];
         }
+
+        DeadZone = false;
     }
 
     public void AddTenant(IEntity tenant)
@@ -37,4 +40,5 @@ public class Cell
 
     public IEntity GetLastTenant() => Tenants.LastOrDefault();
     public static bool IsLandlord(IEntity entity) => entity is Wall or Space or BoxCollector;
+
 }

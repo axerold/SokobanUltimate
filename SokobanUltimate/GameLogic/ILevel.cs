@@ -3,6 +3,8 @@
 public interface ILevel
 {
     public Cell[,] Cells { get; }
+
+    public int StepCounter { get; }
     public void Update();
 
     public bool IsWin();

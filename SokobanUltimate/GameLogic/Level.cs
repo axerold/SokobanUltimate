@@ -9,6 +9,8 @@ public class Level : ILevel
     private readonly string[] _charsInitialState;
     public int LevelHeight { get; }
     public int LevelWidth { get; }
+    
+    public int StepCounter { get; private set; }
 
     public static readonly List<IntVector2> Directions =
     [
@@ -50,6 +52,10 @@ public class Level : ILevel
     public bool OutOfBounds(IntVector2 coordinates)
         => 0 > coordinates.X || coordinates.X >= LevelWidth || 0 > coordinates.Y || coordinates.Y >= LevelHeight;
 
+    public bool IsDeadZone(Cell cell)
+    {
+        return false;
+    }
     private void InitializeCells()
     {
         Cells = new Cell[LevelHeight, LevelWidth];
@@ -64,6 +70,9 @@ public class Level : ILevel
                 {
                     case Player player:
                         _player = player;
+                        break;
+                    case Box:
+                        _aliveEntities.Add(entity);
                         break;
                     case BoxCollector:
                         _collectorsCells.Add(Cells[i, j]);
@@ -120,12 +129,22 @@ public class Level : ILevel
 
     private void Move(IEntity entity, IntVector2 targetLocation)
     {
-        if (Cell.IsLandlord(entity) || entity.Location == targetLocation || OutOfBounds(targetLocation)) return;
+        if (Cell.IsLandlord(entity) || entity.Location == targetLocation || OutOfBounds(targetLocation)) 
+            return;
+        
         var currentCell = Cells[entity.Location.Y, entity.Location.X];
         var targetCell = Cells[targetLocation.Y, targetLocation.X];
-        if (targetCell.Landlord is Wall) return;
+        if (targetCell.Landlord is Wall) 
+            return;
+        
         currentCell.RemoveTenant(entity);
         targetCell.AddTenant(entity);
         entity.Location = targetLocation;
+        if (entity is Player)
+            StepCounter++;
+        if (targetCell.Landlord is BoxCollector targetCollector)
+            targetCollector.BoxReceived = true;
+        if (currentCell.Landlord is BoxCollector currentCollector)
+            currentCollector.BoxReceived = false;
     }
 }

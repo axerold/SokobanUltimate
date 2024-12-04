@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SokobanUltimate.Drawing;
 using SokobanUltimate.GameContent;
 using SokobanUltimate.GameLogic;
 
@@ -18,7 +19,10 @@ public class Game1 : Game
     private Texture2D _wallTexture;
     private Texture2D _collectorTexture;
 
+    private UIManager _uiManager;
+
     private int CellSize = 32;
+    private int indent = 3;
     
     public Game1()
     {
@@ -42,13 +46,16 @@ public class Game1 : Game
         _boxTexture = Content.Load<Texture2D>("box");
         _collectorTexture = Content.Load<Texture2D>("collector");
         _wallTexture = Content.Load<Texture2D>("wall");
+        
+        var mainFont = Content.Load<SpriteFont>("MainFont");
+        _uiManager = new UIManager(mainFont, CellSize, indent);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+        /*if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();
+            Exit();*/
 
         _gameState.UpdateLevel(gameTime);
 
@@ -61,9 +68,9 @@ public class Game1 : Game
         
         _spriteBatch.Begin();
         LayersDrawing(_spriteBatch);
+        _uiManager.DrawUI(_spriteBatch);
         _spriteBatch.End();
         
-
         base.Draw(gameTime);
     }
 

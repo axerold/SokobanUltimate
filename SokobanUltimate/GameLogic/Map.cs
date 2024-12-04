@@ -5,6 +5,7 @@ namespace SokobanUltimate.GameLogic;
 public class Map : ILevel
 {
     public Cell[,] Cells { get; }
+    public int StepCounter { get; }
 
     public void Update()
     {
