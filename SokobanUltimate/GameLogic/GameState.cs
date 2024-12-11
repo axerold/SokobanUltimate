@@ -18,10 +18,12 @@ public class GameState
     private static Stack<Queue<Action>> TurnHistory = new();
 
     private float _cooldownTimer;
-    private const float MoveCoolDown = 0.12f;
+    public static readonly float MoveCoolDown = 0.12f;
     private int _previousStepCounter;
     public static float LevelTimer { get; private set; }
     public static LevelState State { get; private set; }
+
+    public static bool RestartActivated { get; set; }
 
     public static void LoadLevel(string charLevelMap)
     {
@@ -62,8 +64,9 @@ public class GameState
     {
         return State switch
         {
-            LevelState.Running => new DrawingInstruction(drawTime: true, drawStepsCounter: true),
-            LevelState.Paused => new DrawingInstruction(drawTime: true, drawStepsCounter: true, drawPauseMenu: true),
+            LevelState.Running => new DrawingInstruction(drawTime: true, drawStepsCounter: true, drawBoxDelivered: true),
+            LevelState.Paused => new DrawingInstruction(drawTime: true, drawStepsCounter: true, drawBoxDelivered: true,
+                drawPauseMenu: true),
             LevelState.Win => new DrawingInstruction(drawWinScreen: true),
             LevelState.Loss => new DrawingInstruction(drawLossScreen: true),
             _ => throw new ArgumentOutOfRangeException()
@@ -99,9 +102,12 @@ public class GameState
             State = LevelState.Paused;
         else if (State is LevelState.Paused && Keyboard.GetState().IsKeyDown(Keys.Escape))
             State = LevelState.Running;
-        
+
         if (State is not LevelState.Paused && Keyboard.GetState().IsKeyDown(Keys.R))
+        {
+            RestartActivated = true;
             LoadLevel(currentLevelMap);
+        }
 
         if (Keyboard.GetState().IsKeyDown(Keys.Z))
         {
@@ -114,15 +120,18 @@ public class GameState
                     return;
                 case LevelState.Loss:
                     State = LevelState.Running;
-                    if (_currentLevel is Level)
-                        ((Level)_currentLevel).RestoreBoxes();
+                    if (_currentLevel is Level level)
+                    {
+                        level.RestoreBoxes();
+                    }
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
             
             ((Level)_currentLevel).UndoTurn();
-            _currentLevel.Update();
+            _previousStepCounter = _currentLevel.StepCounter;
+            //_currentLevel.Update();
         }
     }
 }

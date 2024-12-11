@@ -17,7 +17,7 @@ public class Level : ILevel
     
     public int StepCounter { get; private set; }
 
-    public static readonly List<IntVector2> Directions =
+    public static readonly IntVector2[] Directions =
     [
         new(1, 0), new(0, 1),
         new(-1, 0), new(0, -1)
@@ -61,6 +61,28 @@ public class Level : ILevel
         if (GameState.State is LevelState.Running)
             _deadEntities.Clear();
     }
+    
+    public void UndoTurn()
+    {
+        var queue = GameState.GetLastTurnActions(this);
+        if (queue is null) return;
+        while (queue.Count > 0)
+        {
+            var action = queue.Dequeue();
+            if (action.Initiator is Player player)
+            {
+                player.LastAction = action;
+                player.LastDirection = action.TargetLocation - action.StartLocation;
+            }
+
+            if (action.CommandType is CommandType.MOVE)
+            {
+                Move(action.Initiator, action.StartLocation, true);
+            }
+        }
+    }
+
+    public List<Cell> GetCollectorsCells() => _collectorsCells;
 
     private bool OutOfBounds(IntVector2 coordinates)
         => 0 > coordinates.X || coordinates.X >= LevelWidth || 0 > coordinates.Y || coordinates.Y >= LevelHeight;
@@ -112,47 +134,20 @@ public class Level : ILevel
         foreach (var tenant in targetCell.Tenants)
         {
             _actionList.Add(tenant.OnAction(playerAction));
+            if (tenant is IReactive reactive) 
+                _actionList[0] = reactive.React(playerAction, _actionList.Last());
         }
-        _actionList[0] = CorrectPlayerAction(playerAction);
+        
+        _player.LastAction = _actionList[0];
         for (var i = _actionList.Count - 1; i >= 0; i--)
         {
             if (_actionList[i].CommandType is CommandType.MOVE)
                 Move(_actionList[i].Initiator, _actionList[i].TargetLocation);
         }
+        
         if (_actionList[0].CommandType is CommandType.MOVE)
             GameState.UpdateHistory();
         _actionList.Clear();
-    }
-
-    public void UndoTurn()
-    {
-        var queue = GameState.GetLastTurnActions(this);
-        if (queue is null) return;
-        while (queue.Count > 0)
-        {
-            var action = queue.Dequeue();
-            if (action.CommandType is CommandType.MOVE)
-            {
-                Move(action.Initiator, action.StartLocation, true);
-            }
-        }
-
-        StepCounter--;
-        Log.Debug("Stepcounter = {steps}", StepCounter);
-    }
-
-    private Action CorrectPlayerAction(Action playerAction)
-    {
-        foreach (var action in _actionList)
-        {
-            if (playerAction.CommandType is CommandType.MOVE
-                && action.CommandType is CommandType.IDLE && action.Initiator is Box)
-            {
-                return new Action(CommandType.IDLE, playerAction.Initiator, playerAction.Initiator.Location);
-            }
-        }
-
-        return playerAction;
     }
 
     private void Move(IEntity entity, IntVector2 targetLocation, bool isRewind = false)
@@ -168,8 +163,19 @@ public class Level : ILevel
         currentCell.RemoveTenant(entity);
         targetCell.AddTenant(entity);
         entity.Location = targetLocation;
-        if (entity is Player && !isRewind)
-            StepCounter++;
+        if (entity is Player)
+        {
+            switch (isRewind)
+            {
+                case true:
+                    StepCounter--;
+                    break;
+                case false:
+                    StepCounter++;
+                    break;
+            }
+        }
+
         if (targetCell.Landlord is BoxCollector targetCollector)
             targetCollector.BoxReceived = true;
         if (currentCell.Landlord is BoxCollector currentCollector)

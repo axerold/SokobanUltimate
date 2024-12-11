@@ -1,4 +1,4 @@
-﻿namespace SokobanUltimate.GameLogic;
+﻿namespace SokobanUltimate.GameLogic.Levels;
 
 public enum LevelState
 {

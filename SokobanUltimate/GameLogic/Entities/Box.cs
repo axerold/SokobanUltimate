@@ -6,7 +6,7 @@ using SokobanUltimate.GameLogic.Levels;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
-public class Box : IEntity
+public class Box : IEntity, IReactive
 {
     private IntVector2 _location;
     public IntVector2 Location 
@@ -40,6 +40,14 @@ public class Box : IEntity
             return idleAction;
         
         return new Action(CommandType.MOVE, this, Location + direction);
+    }
+    
+    public Action React(Action foreignAction, Action ownAction)
+    {
+        if (ownAction.CommandType is CommandType.IDLE && foreignAction.CommandType is CommandType.MOVE
+                                                      && foreignAction.Initiator is Player)
+            return new Action(initiator: foreignAction.Initiator, location: foreignAction.StartLocation);
+        return foreignAction;
     }
 
     public Properties GetProperties() => new(this);

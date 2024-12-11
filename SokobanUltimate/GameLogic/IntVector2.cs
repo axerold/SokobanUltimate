@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace SokobanUltimate.GameLogic;
 

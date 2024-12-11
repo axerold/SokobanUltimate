@@ -1,16 +1,39 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework.Input;
+using Serilog;
+using SokobanUltimate.Drawing;
 using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
-public class Player(IntVector2 coordinates) : IEntity, IActive
+public class Player : IEntity, IActive
 {
+    private IntVector2 _coordinates;
+    private Action _lastAction;
+
+    public Player(IntVector2 coordinates)
+    {
+        _coordinates = coordinates;
+        LastDirection = AnimationManager.Directions[0];
+    }
+
     public IntVector2 Location
     {
-        get => coordinates;
-        set => coordinates = value;
+        get => _coordinates;
+        set => _coordinates = value;
+    }
+
+    public IntVector2 LastDirection
+    {
+        get;
+        set;
+    }
+
+    public Action LastAction
+    {
+        get => _lastAction ?? new Action();
+        set => _lastAction = value;
     }
 
     public static readonly Dictionary<Keys, IntVector2> KeysToDirections = new()
@@ -31,10 +54,11 @@ public class Player(IntVector2 coordinates) : IEntity, IActive
     public Action Act()
     {
         var keyboardState = Keyboard.GetState();
-        foreach (var keyToDirection in KeysToDirections)
-            if (keyboardState.IsKeyDown(keyToDirection.Key))
+        foreach (var (key,direction) in KeysToDirections)
+            if (keyboardState.IsKeyDown(key))
             {
-                var newLocation = coordinates + keyToDirection.Value;
+                var newLocation = _coordinates + direction;
+                LastDirection = direction;
                 return new Action(CommandType.MOVE, this, newLocation);
             }
 
