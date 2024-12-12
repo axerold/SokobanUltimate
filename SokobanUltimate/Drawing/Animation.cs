@@ -49,11 +49,10 @@ public class Animation
     {
         var valueX = _currentFrame % (Properties.Texture.Width / Properties.FrameWidth) * Properties.FrameWidth;
         var valueY = 0;
-        if (_entity is not Player player)
-            return new Rectangle(valueX, valueY, Properties.FrameWidth, Properties.FrameHeight);
-        
-        valueY = AnimationManager.Directions.IndexOf(player.LastDirection) * Properties.FrameHeight;
-
+        if (_entity is Player player)
+            valueY = AnimationManager.Directions.IndexOf(player.LastDirection) * Properties.FrameHeight;
+        if (_entity is Belt belt)
+            valueY = AnimationManager.Directions.IndexOf(belt.Direction) * Properties.FrameHeight;
         return new Rectangle(valueX, valueY, Properties.FrameWidth, Properties.FrameHeight);
     }
 

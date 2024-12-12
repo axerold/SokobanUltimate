@@ -17,4 +17,9 @@ WWWWWW WWB B W
 WC      BPW
 WWWWWWWWWWW";
 
+    public static string SimpleBelt =
+        @"WWWWWWWWW
+WC4444BPW
+WWWWWWWWW";
+
 }

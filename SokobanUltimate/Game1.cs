@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using SokobanUltimate.Drawing;
-using SokobanUltimate.GameContent;
 using SokobanUltimate.GameLogic;
 using Serilog;
-using Serilog.Core;
 using SokobanUltimate.GameLogic.Entities;
-using SokobanUltimate.GameLogic.Interfaces;
+using SokobanUltimate.GameLogic.Menus;
 
 namespace SokobanUltimate;
 
@@ -18,23 +14,21 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
     private GameState _gameState;
 
-    private Texture2D _playerTexture;
-    private Texture2D _playerMoveSprites;
-    private Texture2D _boxTexture;
-    private Texture2D _wallTexture;
-    private Texture2D _collectorTexture;
-
-    private Dictionary<IEntity, Vector2> visualPositions = new();
-
     private UIManager _uiManager;
 
     private Animation playerAnimation;
     private AnimationManager _animationManager;
+    private TextureManager _textureManager;
+    private VisualPositionsManager _visualPositionsManager = new();
+    
+    private MenuManager _menuManager;
+    private MenuRenderer _menuRenderer;
 
     private static int CellSize = 32;
     private int indent = 3;
     private float moveSpeed = CellSize / GameState.MoveCoolDown;
-    
+    private SpriteFont _mainFont;
+
     public Game1()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -45,46 +39,50 @@ public class Game1 : Game
     protected override void Initialize()
     {
         _gameState = new GameState();
-        GameState.LoadLevel(CharMaps.LevelOne);
+        _menuManager = new MenuManager();
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()
             .WriteTo.Console()
             .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day).CreateLogger();
         Log.Information("Игра запущена");
-        InitializeVisualPositions();
         
         base.Initialize();
     }
 
     protected override void LoadContent()
     {
+        _textureManager = new TextureManager(32);
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _playerTexture = Content.Load<Texture2D>("beards");
-        _boxTexture = Content.Load<Texture2D>("box");
-        _collectorTexture = Content.Load<Texture2D>("collector");
-        _wallTexture = Content.Load<Texture2D>("wall");
-        _playerMoveSprites = Content.Load<Texture2D>("player_move");
+        _textureManager.LoadTextures(Content);
         
-        var mainFont = Content.Load<SpriteFont>("MainFont");
-        _uiManager = new UIManager(mainFont, CellSize, indent);
-        _animationManager = new AnimationManager(_playerMoveSprites);
+        _mainFont = Content.Load<SpriteFont>("retro");
+        _menuRenderer = new MenuRenderer(_mainFont);
     }
 
     protected override void Update(GameTime gameTime)
     {
-        /*if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-            Keyboard.GetState().IsKeyDown(Keys.Escape))
-            Exit();*/
+        _menuManager.Update();
+        if (_menuManager.ToExit) Exit();
 
+        if (GameState.GetCurrentLevel() is not null && !_visualPositionsManager.Initialized)
+        {
+            _visualPositionsManager.Initialize(_textureManager);
+            _uiManager = new UIManager(_mainFont, CellSize, indent);
+            _animationManager = new AnimationManager(_textureManager);
+        }
         _gameState.UpdateLevel(gameTime);
         if (GameState.RestartActivated)
         {
-            InitializeVisualPositions();
+            _visualPositionsManager.Initialize(_textureManager);
             _animationManager.Reload();
             GameState.RestartActivated = false;
         }
-        _animationManager.Update(gameTime);
-        UpdateVisualPositions(gameTime);
+
+        if (_visualPositionsManager.Initialized)
+        {
+            _animationManager.Update(gameTime);
+            _visualPositionsManager.Update(_textureManager, gameTime, moveSpeed);
+        }
 
         base.Update(gameTime);
     }
@@ -94,8 +92,14 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.Black);
         
         _spriteBatch.Begin();
-        LayersDrawing(_spriteBatch);
-        _uiManager.DrawUI(_spriteBatch);
+        if (MenuManager.CurrentMenu is not null) 
+            _menuRenderer.Render(_spriteBatch, _textureManager);
+        if (GameState.GetCurrentLevel() is not null)
+        {
+            LayersDrawing(_spriteBatch);
+            _uiManager.DrawUI(_spriteBatch);
+        }
+
         _spriteBatch.End();
         
         base.Draw(gameTime);
@@ -106,8 +110,8 @@ public class Game1 : Game
         var cells = GameState.GetCurrentLevel().Cells;
         foreach (var cell in cells)
         {
-            var texture = GetTextureByEntity(cell.Landlord);
-            var position = GetTexturePosition(cell.Landlord);
+            var texture = _textureManager.GetTextureForEntity(cell.Landlord);
+            var position = _textureManager.GetTexturePosition(cell.Landlord);
             if (texture is not null)
                 batch.Draw(texture, position, Color.White);
         }
@@ -116,72 +120,20 @@ public class Game1 : Game
         {
             foreach (var tenant in cell.Tenants)
             {
-                var position = visualPositions[tenant];
+                var position = _visualPositionsManager.GetVisualPosition(tenant);
                 if (tenant is Player)
                 {
                     var sourceRectangle = _animationManager.GetCurrentFrame(tenant);
-                    batch.Draw(_playerMoveSprites, position, sourceRectangle: sourceRectangle, 
+                    batch.Draw(_textureManager.GetTextureForEntity(tenant), position, sourceRectangle: sourceRectangle, 
                         Color.White, 0f, Vector2.Zero, 
                         new Vector2(32f / 24f, 32f / 24f), SpriteEffects.None, 0);
                     
                     continue;
                 }
-                var texture = GetTextureByEntity(tenant);
+                var texture = _textureManager.GetTextureForEntity(tenant);
                 
                 if (texture is not null)
                     batch.Draw(texture, position, Color.White);
-            }
-        }
-    }
-
-    private Texture2D GetTextureByEntity(IEntity entity)
-    {
-        return entity switch
-        {
-            Player => _playerTexture,
-            Box => _boxTexture,
-            BoxCollector => _collectorTexture,
-            Wall => _wallTexture,
-            _ => null
-        };
-    }
-
-    private Vector2 GetTexturePosition(IEntity entity)
-    {
-        return new Vector2(entity.Location.X * CellSize, entity.Location.Y * CellSize);
-    }
-
-    private void InitializeVisualPositions()
-    {
-        foreach (var cell in GameState.GetCurrentLevel().Cells)
-        {
-            foreach (var tenant in cell.Tenants)
-            {
-                visualPositions[tenant] = GetTexturePosition(tenant);
-            }
-        }
-    }
-
-    private void UpdateVisualPositions(GameTime gameTime)
-    {
-        foreach (var (tenant, visualLocation) in visualPositions)
-        {
-            var currentLocation = GetTexturePosition(tenant);
-            if (currentLocation == visualLocation)
-            {
-                continue;
-            }
-
-            var direction = Vector2.Normalize(currentLocation - visualLocation);
-            var distanceToMove = moveSpeed * (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            if (Vector2.Distance(currentLocation, visualLocation) <= distanceToMove)
-            {
-                visualPositions[tenant] = currentLocation;
-            }
-            else
-            {
-                visualPositions[tenant] += direction * distanceToMove;
             }
         }
     }

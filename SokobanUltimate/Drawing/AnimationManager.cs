@@ -20,11 +20,11 @@ public class AnimationManager
     ];
 
     private Dictionary<IEntity, Animation> _entityAnimations = [];
-    private Texture2D _playerMoves;
+    private TextureManager _textureManager;
 
-    public AnimationManager(Texture2D playerMoves)
+    public AnimationManager(TextureManager manager)
     {
-        _playerMoves = playerMoves;
+        _textureManager = manager;
         InitializeAnimations();
     }
 
@@ -53,6 +53,12 @@ public class AnimationManager
                         throw new ArgumentOutOfRangeException();
                 }
             }
+
+            if (entity is Belt belt)
+            {
+                if (!animation.IsActive)
+                    animation.Start();
+            }
             animation.Update(gameTime);
         }
     }
@@ -67,8 +73,10 @@ public class AnimationManager
     {
         return entity switch
         {
-            Player => new AnimationProperties(_playerMoves, 24, 24,
+            Player => new AnimationProperties(_textureManager.GetTextureForEntity(entity), 24, 24,
                 4, GameState.MoveCoolDown / 2f),
+            Belt => new AnimationProperties(_textureManager.GetTextureForEntity(entity), 32, 32,
+                32, 0.1f),
             _ => new AnimationProperties()
         };
     }
@@ -79,7 +87,7 @@ public class AnimationManager
         {
             foreach (var tenant in cell.Tenants)
             {
-                if (tenant is Player)
+                if (tenant is Player or Belt)
                     _entityAnimations[tenant] = new Animation(GetAnimationProperties(tenant), tenant);
             }
         }    

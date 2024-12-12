@@ -122,6 +122,7 @@ public class Level : ILevel
             'B' => new Box(coordinates),
             'C' => new BoxCollector(coordinates),
             ' ' => new Space(coordinates),
+            '4' => new Belt(coordinates, Directions[3]),
             _ => throw new ArgumentException("Unexpected map symbol")
         };
     }

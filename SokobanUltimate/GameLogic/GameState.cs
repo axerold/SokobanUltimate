@@ -31,10 +31,13 @@ public class GameState
         currentLevelMap = charLevelMap;
         LevelTimer = 0.0f;
         State = LevelState.Running;
+        TurnHistory.Clear();
     }
 
     public void UpdateLevel(GameTime gameTime)
     {
+        if (_currentLevel is null) return;
+        
         var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
         _cooldownTimer -= deltaTime;
         if (State is LevelState.Running)
@@ -86,6 +89,8 @@ public class GameState
         TurnHistory.TryPop(out var lastTurn);
         return lastTurn;
     }
+    
+    public static Cell GetCellByLocation(IntVector2 location) => _currentLevel.Cells[location.Y, location.X];
 
     private void CheckState()
     {
@@ -131,7 +136,6 @@ public class GameState
             
             ((Level)_currentLevel).UndoTurn();
             _previousStepCounter = _currentLevel.StepCounter;
-            //_currentLevel.Update();
         }
     }
 }

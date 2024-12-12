@@ -3,19 +3,22 @@ using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
-public class Belt : IEntity, IReactive
+public class Belt(IntVector2 location, IntVector2 direction, bool isActive = true)
+    : IEntity, IReactive
 {
-    public IntVector2 Location { get; set; }
+    public IntVector2 Location { get; set; } = location;
 
-    public IntVector2 Direction { get; set; }
-    
-    public bool IsActive { get; set; }
+    public IntVector2 Direction { get; set; } = direction;
+
+    public bool IsActive { get; set; } = isActive;
 
     public Action OnAction(Action action) => new();
     
     public Action React(Action foreignAction, Action ownAction)
     {
-        if (foreignAction.TargetLocation == Location && IsActive)
+        var targetCell = GameState.GetCellByLocation(foreignAction.TargetLocation);
+        if (foreignAction.TargetLocation == Location && IsActive &&
+            targetCell.Landlord is not Wall && targetCell.GetLastTenant() is not Box)
             return new Action(initiator: foreignAction.Initiator, location:
                 foreignAction.TargetLocation + Direction, commandType: CommandType.MOVE);
         return foreignAction;
