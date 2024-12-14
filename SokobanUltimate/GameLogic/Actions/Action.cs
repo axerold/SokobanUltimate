@@ -1,11 +1,12 @@
-﻿using SokobanUltimate.GameLogic.Interfaces;
+﻿using Microsoft.Xna.Framework;
+using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Actions;
 
-public class Action(CommandType commandType = CommandType.IDLE, IEntity initiator = null, IntVector2 location = new())
+public class Action(CommandType commandType = CommandType.IDLE, IEntity initiator = null, Point location = new())
 {
     public readonly CommandType CommandType = commandType;
     public readonly IEntity Initiator = initiator;
-    public readonly IntVector2 TargetLocation = location;
-    public readonly IntVector2 StartLocation = initiator?.Location ?? new IntVector2();
+    public readonly Point TargetLocation = location;
+    public readonly Point StartLocation = initiator?.Location ?? new Point();
 }

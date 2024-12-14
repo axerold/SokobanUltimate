@@ -1,4 +1,6 @@
-﻿using SokobanUltimate.GameLogic.Interfaces;
+﻿using System.Collections.Generic;
+using SokobanUltimate.Control;
+using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Levels;
 
@@ -8,7 +10,7 @@ public class Map : ILevel
     public Cell[,] Cells { get; }
     public int StepCounter { get; }
 
-    public void Update()
+    public void Update(List<Query> queries)
     {
         throw new System.NotImplementedException();
     }

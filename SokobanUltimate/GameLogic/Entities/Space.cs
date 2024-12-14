@@ -1,13 +1,14 @@
-﻿using SokobanUltimate.GameLogic.Actions;
+﻿using Microsoft.Xna.Framework;
+using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
 public class Space : IEntity
 {
-    public IntVector2 Location { get; set; }
+    public Point Location { get; set; }
 
-    public Space(IntVector2 location)
+    public Space(Point location)
     {
         Location = location;
     }

@@ -1,2 +1,2 @@
-﻿using var game = new SokobanUltimate.Game1();
+﻿using var game = new SokobanUltimate.SokobanGame();
 game.Run();

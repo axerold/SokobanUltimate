@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Xna.Framework;
+using Serilog;
 using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Interfaces;
 using SokobanUltimate.GameLogic.Levels;
@@ -8,8 +10,8 @@ namespace SokobanUltimate.GameLogic.Entities;
 
 public class Box : IEntity, IReactive
 {
-    private IntVector2 _location;
-    public IntVector2 Location 
+    private Point _location;
+    public Point Location 
     { 
         get => _location;
         set
@@ -19,9 +21,9 @@ public class Box : IEntity, IReactive
         }
     }
 
-    private Dictionary<IntVector2, Cell> _neighborCells = new();
+    private Dictionary<Point, Cell> _neighborCells = new();
 
-    public Box(IntVector2 location)
+    public Box(Point location)
     {
         _location = location;
     }
@@ -60,7 +62,7 @@ public class Box : IEntity, IReactive
 
     private void UpdateNeighbors()
     {
-        foreach (var direction in Level.Directions)
+        foreach (var (_,direction) in Level.Directions)
         {
             var newLocation = Location + direction;
             _neighborCells[direction] = GameState.GetCurrentLevel().Cells[newLocation.Y, newLocation.X];
@@ -104,9 +106,9 @@ public class Box : IEntity, IReactive
     private bool AnyEmptySpaces()
     {
         UpdateNeighbors();
-        return (_neighborCells[Level.Directions[0]].FreeToMove()
-               && _neighborCells[Level.Directions[2]].FreeToMove())
-               || (_neighborCells[Level.Directions[1]].FreeToMove()
-               && _neighborCells[Level.Directions[3]].FreeToMove());
+        return (_neighborCells[Level.Directions["up"]].FreeToMove()
+               && _neighborCells[Level.Directions["down"]].FreeToMove())
+               || (_neighborCells[Level.Directions["left"]].FreeToMove()
+               && _neighborCells[Level.Directions["right"]].FreeToMove());
     }
 }

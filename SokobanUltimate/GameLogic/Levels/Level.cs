@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Serilog;
+using SokobanUltimate.Control;
 using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Entities;
 using SokobanUltimate.GameLogic.Interfaces;
 using Action = SokobanUltimate.GameLogic.Actions.Action;
+using Point = Microsoft.Xna.Framework.Point;
 
 namespace SokobanUltimate.GameLogic.Levels;
 
@@ -17,11 +19,11 @@ public class Level : ILevel
     
     public int StepCounter { get; private set; }
 
-    public static readonly IntVector2[] Directions =
-    [
-        new(1, 0), new(0, 1),
-        new(-1, 0), new(0, -1)
-    ];
+    public static readonly Dictionary<string, Point> Directions = new()
+    {
+        {"right", new Point(1, 0)},{"down", new Point(0, 1)},
+        {"left", new Point(-1, 0)}, {"up", new Point(0, -1)}
+    };
     
     private Player _player;
     public Cell[,] Cells { get; private set; }
@@ -39,9 +41,9 @@ public class Level : ILevel
         InitializeCells();
     }
     
-    public void Update()
+    public void Update(List<Query> queries)
     {
-        ProcessActions();
+        PerformActions(queries);
     }
 
     public bool IsWin()
@@ -77,6 +79,7 @@ public class Level : ILevel
 
             if (action.CommandType is CommandType.MOVE)
             {
+                Log.Debug("{CP}, {PP}", action.Initiator.Location, action.StartLocation);
                 Move(action.Initiator, action.StartLocation, true);
             }
         }
@@ -84,7 +87,7 @@ public class Level : ILevel
 
     public List<Cell> GetCollectorsCells() => _collectorsCells;
 
-    private bool OutOfBounds(IntVector2 coordinates)
+    private bool OutOfBounds(Point coordinates)
         => 0 > coordinates.X || coordinates.X >= LevelWidth || 0 > coordinates.Y || coordinates.Y >= LevelHeight;
 
     private void InitializeCells()
@@ -94,7 +97,7 @@ public class Level : ILevel
         {
             for (var j = 0; j < LevelWidth; j++)
             {
-                var location = new IntVector2(j, i);
+                var location = new Point(j, i);
                 var entity = GetEntityBySymbol(location, _charsInitialState[i][j]);
                 Cells[i, j] = new Cell(entity, location);
                 switch (entity)
@@ -113,7 +116,7 @@ public class Level : ILevel
         }
     }
     
-    private static IEntity GetEntityBySymbol(IntVector2 coordinates, char symbol)
+    private static IEntity GetEntityBySymbol(Point coordinates, char symbol)
     {
         return symbol switch
         {
@@ -122,14 +125,30 @@ public class Level : ILevel
             'B' => new Box(coordinates),
             'C' => new BoxCollector(coordinates),
             ' ' => new Space(coordinates),
-            '4' => new Belt(coordinates, Directions[3]),
             _ => throw new ArgumentException("Unexpected map symbol")
         };
     }
 
-    private void ProcessActions()
+    private Action ProcessAction(List<Query> queries)
     {
-        var playerAction = _player.Act();
+        var idleAction = new Action(CommandType.IDLE, _player, _player.Location);
+        if (queries is null || queries.Count > 1)
+            return idleAction;
+        var query = queries[0];
+        
+        if (query.Command == "move" && Directions.TryGetValue(query.Info, out var targetLocation))
+        {
+            return new Action(CommandType.MOVE, _player, _player.Location + targetLocation);
+        }
+
+        return idleAction;
+
+    }
+
+    private void PerformActions(List<Query> queries)
+    {
+        var playerAction = ProcessAction(queries);
+        if (playerAction is null) return;
         _actionList.Add(playerAction);
         var targetCell = Cells[playerAction.TargetLocation.Y, playerAction.TargetLocation.X];
         foreach (var tenant in targetCell.Tenants)
@@ -151,7 +170,7 @@ public class Level : ILevel
         _actionList.Clear();
     }
 
-    private void Move(IEntity entity, IntVector2 targetLocation, bool isRewind = false)
+    private void Move(IEntity entity, Point targetLocation, bool isRewind = false)
     {
         if (Cell.IsLandlord(entity) || entity.Location == targetLocation || OutOfBounds(targetLocation)) 
             return;
@@ -161,9 +180,6 @@ public class Level : ILevel
         if (targetCell.Landlord is Wall) 
             return;
         
-        currentCell.RemoveTenant(entity);
-        targetCell.AddTenant(entity);
-        entity.Location = targetLocation;
         if (entity is Player)
         {
             switch (isRewind)
@@ -175,7 +191,12 @@ public class Level : ILevel
                     StepCounter++;
                     break;
             }
+
+            _player.LastDirection = targetLocation - _player.Location;
         }
+        currentCell.RemoveTenant(entity);
+        targetCell.AddTenant(entity);
+        entity.Location = targetLocation;
 
         if (targetCell.Landlord is BoxCollector targetCollector)
             targetCollector.BoxReceived = true;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Serilog;
 using SokobanUltimate.GameLogic;
 using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Entities;
@@ -13,7 +11,7 @@ namespace SokobanUltimate.Drawing;
 
 public class AnimationManager
 {
-    public static readonly List<IntVector2> Directions =
+    public static readonly List<Point> Directions =
     [
         new(0, -1), new(0, 1),
         new(1, 0), new(-1, 0)

@@ -37,6 +37,9 @@
     <ItemGroup>
       <Folder Include="Sprites\" />
     </ItemGroup>
+    <ItemGroup>
+      <Content Include="bin\Debug\net8.0\Control\KeyBindings.json" />
+    </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
         <Message Text="Restoring dotnet tools" Importance="High"/>
         <Exec Command="dotnet tool restore"/>

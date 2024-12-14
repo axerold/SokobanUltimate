@@ -1,11 +1,12 @@
-﻿using SokobanUltimate.GameLogic.Actions;
+﻿using Microsoft.Xna.Framework;
+using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
-public class BoxCollector(IntVector2 coordinates) : IEntity
+public class BoxCollector(Point coordinates) : IEntity
 {
-    public IntVector2 Location
+    public Point Location
     {
         get => coordinates;
         set => coordinates = value;

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Microsoft.Xna.Framework;
 using SokobanUltimate.GameLogic.Entities;
 using SokobanUltimate.GameLogic.Interfaces;
 
@@ -12,7 +13,7 @@ public class Cell
     public List<IEntity> Tenants { get; }
     public bool DeadZone { get; set; }
 
-    public Cell(IEntity entity, IntVector2 location)
+    public Cell(IEntity entity, Point location)
     {
         if (IsLandlord(entity))
         {

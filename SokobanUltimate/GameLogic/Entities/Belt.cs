@@ -1,14 +1,15 @@
-﻿using SokobanUltimate.GameLogic.Actions;
+﻿using Microsoft.Xna.Framework;
+using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
-public class Belt(IntVector2 location, IntVector2 direction, bool isActive = true)
+public class Belt(Point location, Point direction, bool isActive = true)
     : IEntity, IReactive
 {
-    public IntVector2 Location { get; set; } = location;
+    public Point Location { get; set; } = location;
 
-    public IntVector2 Direction { get; set; } = direction;
+    public Point Direction { get; set; } = direction;
 
     public bool IsActive { get; set; } = isActive;
 

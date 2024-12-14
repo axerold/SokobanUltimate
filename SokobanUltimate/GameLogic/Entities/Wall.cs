@@ -1,15 +1,16 @@
-﻿using SokobanUltimate.GameLogic.Actions;
+﻿using Microsoft.Xna.Framework;
+using SokobanUltimate.GameLogic.Actions;
 using SokobanUltimate.GameLogic.Interfaces;
 
 namespace SokobanUltimate.GameLogic.Entities;
 
 public class Wall : IEntity
 {
-    public Wall(IntVector2 location)
+    public Wall(Point location)
     {
         Location = location;
     }
-    public IntVector2 Location { get; set; }
+    public Point Location { get; set; }
 
     public Action OnAction(Action action)
     {

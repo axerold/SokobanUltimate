@@ -3,23 +3,23 @@ using Microsoft.Xna.Framework.Graphics;
 using SokobanUltimate.Drawing;
 using SokobanUltimate.GameLogic;
 using Serilog;
+using SokobanUltimate.Control;
 using SokobanUltimate.GameLogic.Entities;
 using SokobanUltimate.GameLogic.Menus;
 
 namespace SokobanUltimate;
 
-public class Game1 : Game
+public class SokobanGame : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
     private GameState _gameState;
 
     private UIManager _uiManager;
-
-    private Animation playerAnimation;
     private AnimationManager _animationManager;
     private TextureManager _textureManager;
     private VisualPositionsManager _visualPositionsManager = new();
+    private KeyboardManager _keyboardManager = new();
     
     private MenuManager _menuManager;
     private MenuRenderer _menuRenderer;
@@ -29,7 +29,7 @@ public class Game1 : Game
     private float moveSpeed = CellSize / GameState.MoveCoolDown;
     private SpriteFont _mainFont;
 
-    public Game1()
+    public SokobanGame()
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
@@ -39,6 +39,7 @@ public class Game1 : Game
     protected override void Initialize()
     {
         _gameState = new GameState();
+        
         _menuManager = new MenuManager();
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Debug()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Serilog;
+using SokobanUltimate.Control;
 using SokobanUltimate.Drawing;
 using SokobanUltimate.GameLogic.Interfaces;
 using SokobanUltimate.GameLogic.Levels;
@@ -37,30 +38,12 @@ public class GameState
     public void UpdateLevel(GameTime gameTime)
     {
         if (_currentLevel is null) return;
+        if (!Timer(gameTime)) return;
+        var queries = KeyboardManager.ObtainKeyboardQueries();
+        if (!ProcessQueries(queries) && State is LevelState.Running)
+            _currentLevel.Update(queries);
         
-        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        _cooldownTimer -= deltaTime;
-        if (State is LevelState.Running)
-            LevelTimer += deltaTime;
-        if (!(_cooldownTimer <= 0.0f)) return;
-        _cooldownTimer = MoveCoolDown;
-        switch (State)
-        {
-            case LevelState.Running:
-                _currentLevel.Update();
-                break;
-            case LevelState.Paused:
-                //TODO
-                break;
-            case LevelState.Win:
-                //TODO
-                break;
-            case LevelState.Loss:
-                //TODO
-                break;
-        }
-        
-        CheckState();
+        ChangeState();
     }
     
     public static DrawingInstruction GetDrawingInstruction()
@@ -90,9 +73,9 @@ public class GameState
         return lastTurn;
     }
     
-    public static Cell GetCellByLocation(IntVector2 location) => _currentLevel.Cells[location.Y, location.X];
+    public static Cell GetCellByLocation(Point location) => _currentLevel.Cells[location.Y, location.X];
 
-    private void CheckState()
+    private void ChangeState()
     {
         if (_currentLevel.StepCounter > _previousStepCounter)
         {
@@ -102,40 +85,81 @@ public class GameState
                 State = LevelState.Loss;
             _previousStepCounter = _currentLevel.StepCounter;
         }
+    }
 
-        if (State is LevelState.Running && Keyboard.GetState().IsKeyDown(Keys.Escape))
-            State = LevelState.Paused;
-        else if (State is LevelState.Paused && Keyboard.GetState().IsKeyDown(Keys.Escape))
-            State = LevelState.Running;
-
-        if (State is not LevelState.Paused && Keyboard.GetState().IsKeyDown(Keys.R))
+    private bool ProcessQueries(List<Query> queries)
+    {
+        if (queries?.Count != 1) return false;
+        switch (queries[0].Command)
         {
-            RestartActivated = true;
-            LoadLevel(currentLevelMap);
+            case "restart":
+                if (State is not LevelState.Paused)
+                    Restart();
+                return true;
+            case "undo":
+                Undo();
+                return true;
+            case "switch":
+                if (queries[0].Info == "pause")
+                    SwitchPause();
+                return true;
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Z))
+        return false;
+    }
+
+    private bool Timer(GameTime gameTime)
+    {
+        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        _cooldownTimer -= deltaTime;
+        if (State is LevelState.Running)
+            LevelTimer += deltaTime;
+        if (!(_cooldownTimer <= 0.0f)) return false;
+        _cooldownTimer = MoveCoolDown;
+        return true;
+    }
+
+    private void Restart()
+    {
+        RestartActivated = true;
+        _previousStepCounter = 0;
+        LoadLevel(currentLevelMap);    
+    }
+
+    private void Undo()
+    {
+        switch (State)
         {
-            switch (State)
-            {
-                case LevelState.Running:
-                case LevelState.Win:
-                    break;
-                case LevelState.Paused:
-                    return;
-                case LevelState.Loss:
-                    State = LevelState.Running;
-                    if (_currentLevel is Level level)
-                    {
-                        level.RestoreBoxes();
-                    }
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            case LevelState.Running:
+            case LevelState.Win:
+                break;
+            case LevelState.Paused:
+                return;
+            case LevelState.Loss:
+                State = LevelState.Running;
+                if (_currentLevel is Level level)
+                {
+                    level.RestoreBoxes();
+                }
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
             
-            ((Level)_currentLevel).UndoTurn();
-            _previousStepCounter = _currentLevel.StepCounter;
-        }
+        ((Level)_currentLevel).UndoTurn();
+        _previousStepCounter = _currentLevel.StepCounter;    
+    }
+
+    private static void SwitchPause()
+    {
+        switch (State)
+        {
+            case LevelState.Running:
+                State = LevelState.Paused;
+                break;
+            case LevelState.Paused:
+                State = LevelState.Running;
+                break;
+        }    
     }
 }
